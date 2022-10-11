@@ -2,43 +2,35 @@ package gohttp
 
 import (
 	"net/http"
-	"time"
+	"sync"
 )
 
 type httpClient struct {
-	client             *http.Client
-	maxIdleConnections int
-	connectionTimeout  time.Duration
-	responseTimeout    time.Duration
-	disableTimeout     bool
-	Headers            http.Header
+	builder   *builder
+	client    *http.Client
+	clientOne sync.Once
 }
 
-func newClient() HttpClient {
-	httpClient := &httpClient{}
-	return httpClient
+type Client interface {
+	Get(url string, headers http.Header) (*Response, error)
+	Post(url string, headers http.Header, body interface{}) (*Response, error)
+	Put(url string, headers http.Header, body interface{}) (*Response, error)
+	Delete(url string, headers http.Header) (*Response, error)
+	Patch(url string, headers http.Header) (*Response, error)
 }
 
-type HttpClient interface {
-	Get(url string, headers http.Header) (*http.Response, error)
-	Post(url string, headers http.Header, body interface{}) (*http.Response, error)
-	Put(url string, headers http.Header, body interface{}) (*http.Response, error)
-	Delete(url string, headers http.Header) (*http.Response, error)
-	Patch(url string, headers http.Header) (*http.Response, error)
-}
-
-func (c *httpClient) Get(url string, headers http.Header) (*http.Response, error) {
+func (c *httpClient) Get(url string, headers http.Header) (*Response, error) {
 	return c.do(http.MethodGet, url, headers, nil)
 }
-func (c *httpClient) Post(url string, headers http.Header, body interface{}) (*http.Response, error) {
+func (c *httpClient) Post(url string, headers http.Header, body interface{}) (*Response, error) {
 	return c.do(http.MethodPost, url, headers, body)
 }
-func (c *httpClient) Put(url string, headers http.Header, body interface{}) (*http.Response, error) {
+func (c *httpClient) Put(url string, headers http.Header, body interface{}) (*Response, error) {
 	return c.do(http.MethodPut, url, headers, body)
 }
-func (c *httpClient) Delete(url string, headers http.Header) (*http.Response, error) {
+func (c *httpClient) Delete(url string, headers http.Header) (*Response, error) {
 	return c.do(http.MethodDelete, url, headers, nil)
 }
-func (c *httpClient) Patch(url string, headers http.Header) (*http.Response, error) {
+func (c *httpClient) Patch(url string, headers http.Header) (*Response, error) {
 	return c.do(http.MethodPatch, url, headers, nil)
 }

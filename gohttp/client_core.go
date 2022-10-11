@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"strings"
@@ -31,7 +32,7 @@ func (c *httpClient) getRequestBody(contentType string, body interface{}) ([]byt
 	}
 }
 
-func (c *httpClient) do(method string, url string, headers http.Header, body interface{}) (*http.Response, error) {
+func (c *httpClient) do(method string, url string, headers http.Header, body interface{}) (*Response, error) {
 	fullHeaders := c.getHeaders(headers)
 
 	requestBody, err := c.getRequestBody(fullHeaders.Get("Content-type"), body)
@@ -40,58 +41,76 @@ func (c *httpClient) do(method string, url string, headers http.Header, body int
 		return nil, err
 	}
 
-	request, err := http.NewRequest(method, url, bytes.NewBuffer(requestBody))
-	client := c.getHttpClient()
-	response, err := client.Do(request)
+	if mock := MockupServer.getMock(method, url, string(requestBody)); mock != nil {
+		return mock.getResponse()
+	}
 
+	// TODO: revisar el control de errores de este metodo
+	request, err := http.NewRequest(method, url, bytes.NewBuffer(requestBody))
 	if err != nil {
 		return nil, errors.New("unable to create a new request")
 	}
-
 	request.Header = fullHeaders
 
-	return response, nil
+	client := c.getHttpClient()
+	response, err := client.Do(request)
+	if err != nil {
+		return nil, errors.New("error trying to do request")
+	}
+
+	defer response.Body.Close()
+	responseBody, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, errors.New("error trying to read response body")
+	}
+
+	finalResponse := Response{
+		statusCode: response.StatusCode,
+		headers:    response.Header,
+		body:       responseBody,
+		status:     response.Status,
+	}
+	return &finalResponse, nil
 }
 
 func (c *httpClient) getHttpClient() *http.Client {
-	if c.client != nil {
-		return c.client
-	}
-	client := http.Client{
-		Timeout: c.getConnectionTimeout() + c.getResponseTimeout(),
-		Transport: &http.Transport{
-			MaxIdleConnsPerHost:   c.maxIdleConnections,
-			ResponseHeaderTimeout: c.responseTimeout * time.Second,
-			DialContext: net.Dialer{
-				Timeout: c.connectionTimeout * time.Second,
-			}.DialContext,
-		},
-	}
-	return &client
+	c.clientOne.Do(func() {
+		c.client = &http.Client{
+			Timeout: c.getConnectionTimeout() + c.getResponseTimeout(),
+			Transport: &http.Transport{
+				MaxIdleConnsPerHost:   c.getMaxIdleConnections(),
+				ResponseHeaderTimeout: c.getResponseTimeout(),
+				DialContext: (&net.Dialer{
+					Timeout: c.getConnectionTimeout(),
+				}).DialContext,
+			},
+		}
+	})
+	return c.client
 }
 
 func (c *httpClient) getMaxIdleConnections() int {
-	if c.maxIdleConnections > 0 {
-		return c.maxIdleConnections
+	if c.builder.maxIdleConnections > 0 {
+		return c.builder.maxIdleConnections
 	}
 	return defaultMaxIdleConnections
 }
 
 func (c *httpClient) getResponseTimeout() time.Duration {
-	if c.responseTimeout > 0 {
-		return c.responseTimeout
+	if c.builder.responseTimeout > 0 {
+		return c.builder.responseTimeout
 	}
-	if c.disableTimeout {
+	if c.builder.disableTimeout {
 		return 0
 	}
 	return defaultResponseTimeout
 }
 
 func (c *httpClient) getConnectionTimeout() time.Duration {
-	if c.responseTimeout > 0 {
-		return c.responseTimeout
+	if c.builder.responseTimeout > 0 {
+		return c.builder.responseTimeout
 	}
-	if c.disableTimeout {
+	if c.builder.disableTimeout {
 		return 0
 	}
 	return defaultConnectionTimeout
@@ -100,12 +119,14 @@ func (c *httpClient) getConnectionTimeout() time.Duration {
 func (c *httpClient) getHeaders(headers http.Header) http.Header {
 	result := make(http.Header)
 
-	for header, value := range c.Headers {
+	// Headers from httpclient
+	for header, value := range c.builder.headers {
 		if len(value) > 0 {
 			result.Set(header, value[0])
 		}
 	}
 
+	// Custom headers
 	for header, value := range headers {
 		if len(value) > 0 {
 			result.Set(header, value[0])

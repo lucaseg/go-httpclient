@@ -20,6 +20,7 @@ type ClientBuilder interface {
 	SetConnectionTimeout(timeout time.Duration) ClientBuilder
 	SetResponseTimeout(timeout time.Duration) ClientBuilder
 	DisableTimeout(b bool) ClientBuilder
+	SetHttpClient(c *http.Client) ClientBuilder
 	Build() Client
 }
 
@@ -53,5 +54,10 @@ func (c *builder) SetResponseTimeout(timeout time.Duration) ClientBuilder {
 }
 func (c *builder) DisableTimeout(b bool) ClientBuilder {
 	c.disableTimeout = b
+	return c
+}
+
+func (c *builder) SetHttpClient(client *http.Client) ClientBuilder {
+	c.client = client
 	return c
 }

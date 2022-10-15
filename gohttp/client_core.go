@@ -75,6 +75,10 @@ func (c *httpClient) do(method string, url string, headers http.Header, body int
 
 func (c *httpClient) getHttpClient() *http.Client {
 	c.clientOne.Do(func() {
+		if c.builder.client != nil {
+			c.client = c.builder.client
+			return
+		}
 		c.client = &http.Client{
 			Timeout: c.getConnectionTimeout() + c.getResponseTimeout(),
 			Transport: &http.Transport{

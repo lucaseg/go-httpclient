@@ -14,8 +14,8 @@ import (
 
 const (
 	defaultMaxIdleConnections = 5
-	defaultResponseTimeout    = 5
-	defaultConnectionTimeout  = 5
+	defaultResponseTimeout    = 5 * time.Second
+	defaultConnectionTimeout  = 1 * time.Second
 )
 
 func (c *httpClient) getRequestBody(contentType string, body interface{}) ([]byte, error) {

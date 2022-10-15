@@ -27,8 +27,7 @@ func getHeaders(headers ...http.Header) http.Header {
 }
 
 func (c *httpClient) Get(url string, headers ...http.Header) (*Response, error) {
-
-	return c.do(http.MethodGet, url, getHeaders(headers...))
+	return c.do(http.MethodGet, url, getHeaders(headers...), nil)
 }
 func (c *httpClient) Post(url string, body interface{}, headers ...http.Header) (*Response, error) {
 	return c.do(http.MethodPost, url, getHeaders(headers...), body)

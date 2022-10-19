@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lucaseg/go-httpclient/core"
+	"github.com/lucaseg/go-httpclient/gohttp_mock"
 	"github.com/lucaseg/go-httpclient/gomime"
 )
 
@@ -34,7 +36,7 @@ func (c *httpClient) getRequestBody(contentType string, body interface{}) ([]byt
 	}
 }
 
-func (c *httpClient) do(method string, url string, headers http.Header, body interface{}) (*Response, error) {
+func (c *httpClient) do(method string, url string, headers http.Header, body interface{}) (*core.Response, error) {
 	fullHeaders := c.getHeaders(headers)
 
 	requestBody, err := c.getRequestBody(fullHeaders.Get(gomime.HeaderContentType), body)
@@ -43,8 +45,8 @@ func (c *httpClient) do(method string, url string, headers http.Header, body int
 		return nil, err
 	}
 
-	if mock := MockupServer.getMock(method, url, string(requestBody)); mock != nil {
-		return mock.getResponse()
+	if mock := gohttp_mock.GetMock(method, url, string(requestBody)); mock != nil {
+		return mock.GetResponse()
 	}
 
 	// TODO: revisar el control de errores de este metodo
@@ -66,11 +68,11 @@ func (c *httpClient) do(method string, url string, headers http.Header, body int
 		return nil, errors.New("error trying to read response body")
 	}
 
-	finalResponse := Response{
-		statusCode: response.StatusCode,
-		headers:    response.Header,
-		body:       responseBody,
-		status:     response.Status,
+	finalResponse := core.Response{
+		StatusCode: response.StatusCode,
+		Headers:    response.Header,
+		Body:       responseBody,
+		Status:     response.Status,
 	}
 	return &finalResponse, nil
 }

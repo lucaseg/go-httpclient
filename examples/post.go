@@ -28,7 +28,7 @@ func CreateRepository(request Repository) (*Repository, error) {
 		return nil, err
 	}
 
-	if response.StatusCode() != http.StatusCreated {
+	if response.StatusCode != http.StatusCreated {
 		var gitHubError GitHubError
 		if err := response.UnmarshalJson(&gitHubError); err != nil {
 			return nil, errors.New("unexpected response from github")

@@ -22,5 +22,6 @@ func getHttpClient() gohttp.Client {
 		SetUserAgent("Lucas-Agent").
 		SetResponseTimeout(3 * time.Second).
 		Build()
+
 	return client
 }

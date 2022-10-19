@@ -6,15 +6,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/lucaseg/go-httpclient/gohttp"
+	"github.com/lucaseg/go-httpclient/gohttp_mock"
 )
 
 func TestPostGitHub(t *testing.T) {
 	t.Run("Error creating repo", func(t *testing.T) {
 		// Initialization
-		gohttp.StartMockServer()
-		gohttp.FlushMocks()
-		gohttp.AddMock(gohttp.Mock{
+		gohttp_mock.StartMockServer()
+		gohttp_mock.FlushMocks()
+		gohttp_mock.AddMock(gohttp_mock.Mock{
 			Method:      http.MethodPost,
 			Url:         "https://api.github.com/user/repos",
 			RequestBody: "{\"name\":\"test\",\"description\":\"\",\"private\":true}",
@@ -40,9 +40,9 @@ func TestPostGitHub(t *testing.T) {
 	})
 	t.Run("Creation success", func(t *testing.T) {
 		// Initialization
-		gohttp.StartMockServer()
-		gohttp.FlushMocks()
-		gohttp.AddMock(gohttp.Mock{
+		gohttp_mock.StartMockServer()
+		gohttp_mock.FlushMocks()
+		gohttp_mock.AddMock(gohttp_mock.Mock{
 			Method:         http.MethodPost,
 			Url:            "https://api.github.com/user/repos",
 			RequestBody:    "{\"name\":\"test\",\"description\":\"\",\"private\":true}",
@@ -70,9 +70,9 @@ func TestPostGitHub(t *testing.T) {
 
 	})
 	t.Run("Status Code != 201", func(t *testing.T) {
-		gohttp.StartMockServer()
-		gohttp.FlushMocks()
-		gohttp.AddMock(gohttp.Mock{
+		gohttp_mock.StartMockServer()
+		gohttp_mock.FlushMocks()
+		gohttp_mock.AddMock(gohttp_mock.Mock{
 			Method:         http.MethodPost,
 			Url:            "https://api.github.com/user/repos",
 			RequestBody:    "{\"name\":\"test\",\"description\":\"\",\"private\":true}",
@@ -99,9 +99,9 @@ func TestPostGitHub(t *testing.T) {
 		}
 	})
 	t.Run("Status Code != 201 and unexpected response of error", func(t *testing.T) {
-		gohttp.StartMockServer()
-		gohttp.FlushMocks()
-		gohttp.AddMock(gohttp.Mock{
+		gohttp_mock.StartMockServer()
+		gohttp_mock.FlushMocks()
+		gohttp_mock.AddMock(gohttp_mock.Mock{
 			Method:         http.MethodPost,
 			Url:            "https://api.github.com/user/repos",
 			RequestBody:    "{\"name\":\"test\",\"description\":\"\",\"private\":true}",
@@ -130,9 +130,9 @@ func TestPostGitHub(t *testing.T) {
 
 	t.Run("Unmarshall response success fail", func(t *testing.T) {
 		// Initialization
-		gohttp.StartMockServer()
-		gohttp.FlushMocks()
-		gohttp.AddMock(gohttp.Mock{
+		gohttp_mock.StartMockServer()
+		gohttp_mock.FlushMocks()
+		gohttp_mock.AddMock(gohttp_mock.Mock{
 			Method:         http.MethodPost,
 			Url:            "https://api.github.com/user/repos",
 			RequestBody:    "{\"name\":\"test\",\"description\":\"\",\"private\":true}",

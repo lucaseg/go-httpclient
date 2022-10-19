@@ -1,4 +1,4 @@
-package gohttp
+package gohttp_mock
 
 import (
 	"crypto/md5"
@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	MockupServer = mockServer{
+	mockupServer = mockServer{
 		mocks: make(map[string]*Mock),
 	}
 )
@@ -21,29 +21,29 @@ type mockServer struct {
 }
 
 func StartMockServer() {
-	MockupServer.serverMutex.Lock()
-	defer MockupServer.serverMutex.Unlock()
+	mockupServer.serverMutex.Lock()
+	defer mockupServer.serverMutex.Unlock()
 
-	MockupServer.enable = true
+	mockupServer.enable = true
 }
 
 func StopMockServer() {
-	MockupServer.serverMutex.Lock()
-	defer MockupServer.serverMutex.Unlock()
+	mockupServer.serverMutex.Lock()
+	defer mockupServer.serverMutex.Unlock()
 
-	MockupServer.enable = false
+	mockupServer.enable = false
 }
 
 func FlushMocks() {
-	MockupServer.mocks = make(map[string]*Mock)
+	mockupServer.mocks = make(map[string]*Mock)
 }
 
 func AddMock(mock Mock) {
-	MockupServer.serverMutex.Lock()
-	defer MockupServer.serverMutex.Unlock()
+	mockupServer.serverMutex.Lock()
+	defer mockupServer.serverMutex.Unlock()
 
-	key := MockupServer.getMockKey(mock.Method, mock.Url, mock.RequestBody)
-	MockupServer.mocks[key] = &mock
+	key := mockupServer.getMockKey(mock.Method, mock.Url, mock.RequestBody)
+	mockupServer.mocks[key] = &mock
 }
 
 func (m *mockServer) getMockKey(method, url, responseBody string) string {
@@ -63,12 +63,12 @@ func (m *mockServer) cleanBody(body string) string {
 	return body
 }
 
-func (m *mockServer) getMock(method, url, responseBody string) *Mock {
-	if !m.enable {
+func GetMock(method, url, responseBody string) *Mock {
+	if !mockupServer.enable {
 		return nil
 	}
-	key := MockupServer.getMockKey(method, url, responseBody)
-	mock := m.mocks[key]
+	key := mockupServer.getMockKey(method, url, responseBody)
+	mock := mockupServer.mocks[key]
 	if mock != nil {
 		return mock
 	}

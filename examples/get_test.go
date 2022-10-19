@@ -3,15 +3,16 @@ package examples
 import (
 	"errors"
 	"fmt"
-	"github.com/lucaseg/go-httpclient/gohttp"
 	"net/http"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/lucaseg/go-httpclient/gohttp_mock"
 )
 
 func TestMain(m *testing.M) {
-	gohttp.StartMockServer()
+	gohttp_mock.StartMockServer()
 	os.Exit(m.Run())
 }
 
@@ -19,14 +20,14 @@ func TestGet(t *testing.T) {
 
 	t.Run("When the request fail", func(t *testing.T) {
 		// Given
-		gohttp.FlushMocks()
-		mock := gohttp.Mock{
+		gohttp_mock.FlushMocks()
+		mock := gohttp_mock.Mock{
 			Method:         http.MethodGet,
 			Url:            "https://api.github.com",
 			Error:          errors.New("request time out"),
 			ResponseStatus: 500,
 		}
-		gohttp.AddMock(mock)
+		gohttp_mock.AddMock(mock)
 		// When
 		endpoints, err := GetEndpoints()
 
@@ -46,8 +47,8 @@ func TestGet(t *testing.T) {
 
 	t.Run("When the unmarshal fail", func(t *testing.T) {
 		// Given
-		gohttp.FlushMocks()
-		mock := gohttp.Mock{
+		gohttp_mock.FlushMocks()
+		mock := gohttp_mock.Mock{
 			Method: http.MethodGet,
 			Url:    "https://api.github.com",
 			Error:  errors.New("request time out"),
@@ -57,7 +58,7 @@ func TestGet(t *testing.T) {
 				"}",
 			ResponseStatus: 500,
 		}
-		gohttp.AddMock(mock)
+		gohttp_mock.AddMock(mock)
 		// When
 		endpoints, err := GetEndpoints()
 
@@ -77,8 +78,8 @@ func TestGet(t *testing.T) {
 
 	t.Run("Success case", func(t *testing.T) {
 		// Given
-		gohttp.FlushMocks()
-		mock := gohttp.Mock{
+		gohttp_mock.FlushMocks()
+		mock := gohttp_mock.Mock{
 			Method: http.MethodGet,
 			Url:    "https://api.github.com",
 			ResponseBody: "{" +
@@ -88,7 +89,7 @@ func TestGet(t *testing.T) {
 				"}",
 			ResponseStatus: 200,
 		}
-		gohttp.AddMock(mock)
+		gohttp_mock.AddMock(mock)
 		// When
 		endpoints, err := GetEndpoints()
 		fmt.Println(endpoints)

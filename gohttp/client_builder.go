@@ -12,6 +12,7 @@ type builder struct {
 	responseTimeout    time.Duration
 	disableTimeout     bool
 	client             *http.Client
+	userAgent          string
 }
 
 type ClientBuilder interface {
@@ -21,6 +22,7 @@ type ClientBuilder interface {
 	SetResponseTimeout(timeout time.Duration) ClientBuilder
 	DisableTimeout(b bool) ClientBuilder
 	SetHttpClient(c *http.Client) ClientBuilder
+	SetUserAgent(user string) ClientBuilder
 	Build() Client
 }
 
@@ -59,5 +61,10 @@ func (c *builder) DisableTimeout(b bool) ClientBuilder {
 
 func (c *builder) SetHttpClient(client *http.Client) ClientBuilder {
 	c.client = client
+	return c
+}
+
+func (c *builder) SetUserAgent(user string) ClientBuilder {
+	c.userAgent = user
 	return c
 }

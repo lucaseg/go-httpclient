@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/lucaseg/go-httpclient/gomime"
 )
 
 const (
@@ -23,9 +25,9 @@ func (c *httpClient) getRequestBody(contentType string, body interface{}) ([]byt
 		return nil, nil
 	}
 	switch strings.ToLower(contentType) {
-	case "application/json":
+	case gomime.ContentTypeJson:
 		return json.Marshal(body)
-	case "application/xml":
+	case gomime.ContentTypeXml:
 		return xml.Marshal(body)
 	default:
 		return json.Marshal(body)
@@ -35,7 +37,7 @@ func (c *httpClient) getRequestBody(contentType string, body interface{}) ([]byt
 func (c *httpClient) do(method string, url string, headers http.Header, body interface{}) (*Response, error) {
 	fullHeaders := c.getHeaders(headers)
 
-	requestBody, err := c.getRequestBody(fullHeaders.Get("Content-type"), body)
+	requestBody, err := c.getRequestBody(fullHeaders.Get(gomime.HeaderContentType), body)
 
 	if err != nil {
 		return nil, err
@@ -137,5 +139,11 @@ func (c *httpClient) getHeaders(headers http.Header) http.Header {
 		}
 	}
 
+	if c.builder.userAgent != "" {
+		if result.Get(gomime.HeaderUserAgent) != "" {
+			return result
+		}
+		result.Set(gomime.HeaderUserAgent, c.builder.userAgent)
+	}
 	return result
 }
